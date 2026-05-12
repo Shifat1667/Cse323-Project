@@ -1,0 +1,54 @@
+# Makefile.patch  —  Changes needed in the stock xv6 Makefile
+# Apply with:  patch Makefile Makefile.patch
+# Or manually add the two lines marked with (+) below.
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 1.  Add user programs to UPROGS
+# ─────────────────────────────────────────────────────────────────────────────
+# Locate the UPROGS block and append:
+#
+#   UPROGS=\
+#       ...existing entries...
+# +     _test_getchildren\
+# +     _test_setpriority\
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# 2.  Add the .c files to EXTRA (so mkfs includes them in the disk image)
+# ─────────────────────────────────────────────────────────────────────────────
+# Locate the EXTRA block and append:
+#
+#   EXTRA=\
+#       ...existing entries...
+# +     test_getchildren.c\
+# +     test_setpriority.c\
+#
+# ─────────────────────────────────────────────────────────────────────────────
+# Full minimal standalone Makefile for reference build
+# (use only if you are building this project outside a full xv6 tree)
+# ─────────────────────────────────────────────────────────────────────────────
+
+OBJS = \
+    kernel/proc.o \
+    kernel/syscall.o \
+    kernel/usys.o
+
+CFLAGS = -fno-pic -static -fno-builtin -fno-strict-aliasing \
+         -O2 -Wall -MD -ggdb -m32 -Werror -fno-omit-frame-pointer \
+         -I include
+
+UPROGS = \
+    _test_getchildren \
+    _test_setpriority
+
+.PHONY: all clean
+
+all: $(UPROGS)
+
+_test_getchildren: user/test_getchildren.c
+	$(CC) $(CFLAGS) -Ttext 0 -o $@ $< -nostdlib
+
+_test_setpriority: user/test_setpriority.c
+	$(CC) $(CFLAGS) -Ttext 0 -o $@ $< -nostdlib
+
+clean:
+	rm -f $(UPROGS) kernel/*.o
